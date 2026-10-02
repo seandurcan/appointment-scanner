@@ -6,3 +6,10 @@ local.properties
 *.apk
 .idea/
 *.iml
+
+*.keystore
+*.jks
+*.p12
+AppointmentScanner-v1.1.0/
+source.tgz
+source.tgz.b64
