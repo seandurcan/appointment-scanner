@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -99,6 +99,20 @@ jobs:
           "$TOOLS/aapt" dump badging AppointmentScanner-v1.1.1.apk > AppointmentScanner-v1.1.1.package.txt
           grep -q "^package: name='com.seandurcan.appointmentscanner' versionCode='13' versionName='1.1.1'" AppointmentScanner-v1.1.1.package.txt
           sha256sum AppointmentScanner-v1.1.1.apk > AppointmentScanner-v1.1.1.apk.sha256
+
+      - name: Publish v1.1.1 APK release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v1.1.1 >/dev/null 2>&1; then
+            gh release upload v1.1.1 AppointmentScanner-v1.1.1.apk AppointmentScanner-v1.1.1.apk.sha256 --clobber
+          else
+            gh release create v1.1.1 AppointmentScanner-v1.1.1.apk AppointmentScanner-v1.1.1.apk.sha256 \
+              --title "Appointment Scanner v1.1.1" \
+              --notes "Fix: opens the phone Clock app to confirm a visible alarm while retaining the exact date-aware Appointment Scanner backup alarm."
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
