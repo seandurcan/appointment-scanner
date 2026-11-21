@@ -28,22 +28,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Restore Appointment Scanner v1.1.0 source
+      - name: Restore Appointment Scanner v1.1.1 source
         shell: bash
         run: |
           cat bundle/source.tgz.b64.* > source.tgz.b64
           base64 -d source.tgz.b64 > source.tgz
           tar -xzf source.tgz
-          test -f AppointmentScanner-v1.1.0/settings.gradle.kts
+          mv AppointmentScanner-v1.1.1 AppointmentScanner-v1.1.1\n          test -f AppointmentScanner-v1.1.1/settings.gradle.kts\n          python3 patches/v1.1.1/apply_patch.py AppointmentScanner-v1.1.1
           # API 37 is not yet published in the hosted Android SDK repository.
-          sed -i 's/compileSdk = 37/compileSdk = 36/' AppointmentScanner-v1.1.0/app/build.gradle.kts
-          sed -i 's/targetSdk = 37/targetSdk = 36/' AppointmentScanner-v1.1.0/app/build.gradle.kts
+          sed -i 's/compileSdk = 37/compileSdk = 36/' AppointmentScanner-v1.1.1/app/build.gradle.kts
+          sed -i 's/targetSdk = 37/targetSdk = 36/' AppointmentScanner-v1.1.1/app/build.gradle.kts
           # Keep AndroidX on API-36-compatible releases until API 37 is in the hosted SDK.
-          sed -i 's/compose-bom:2026.09.00/compose-bom:2024.09.02/' AppointmentScanner-v1.1.0/app/build.gradle.kts
-          sed -i 's/core-ktx:1.19.0/core-ktx:1.13.1/' AppointmentScanner-v1.1.0/app/build.gradle.kts
-          sed -i 's/activity-compose:1.13.0/activity-compose:1.9.2/' AppointmentScanner-v1.1.0/app/build.gradle.kts
-          sed -i 's/lifecycle-runtime-ktx:2.11.0/lifecycle-runtime-ktx:2.8.6/' AppointmentScanner-v1.1.0/app/build.gradle.kts
-          sed -i 's/lifecycle-viewmodel-compose:2.11.0/lifecycle-viewmodel-compose:2.8.6/' AppointmentScanner-v1.1.0/app/build.gradle.kts
+          sed -i 's/compose-bom:2026.09.00/compose-bom:2024.09.02/' AppointmentScanner-v1.1.1/app/build.gradle.kts
+          sed -i 's/core-ktx:1.19.0/core-ktx:1.13.1/' AppointmentScanner-v1.1.1/app/build.gradle.kts
+          sed -i 's/activity-compose:1.13.0/activity-compose:1.9.2/' AppointmentScanner-v1.1.1/app/build.gradle.kts
+          sed -i 's/lifecycle-runtime-ktx:2.11.0/lifecycle-runtime-ktx:2.8.6/' AppointmentScanner-v1.1.1/app/build.gradle.kts
+          sed -i 's/lifecycle-viewmodel-compose:2.11.0/lifecycle-viewmodel-compose:2.8.6/' AppointmentScanner-v1.1.1/app/build.gradle.kts
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -69,7 +69,7 @@ jobs:
           gradle-version: '9.6.0'
 
       - name: Run tests and build debug APK
-        working-directory: AppointmentScanner-v1.1.0
+        working-directory: AppointmentScanner-v1.1.1
         shell: bash
         run: gradle --no-daemon clean :app:testDebugUnitTest :app:assembleDebug
 
@@ -88,24 +88,24 @@ jobs:
           TOOLS="$ANDROID_HOME/build-tools/36.0.0"
           "$TOOLS/apksigner" sign --ks "$KEYSTORE" --ks-key-alias androiddebugkey \
             --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
-            --out AppointmentScanner-v1.1.0.apk \
-            AppointmentScanner-v1.1.0/app/build/outputs/apk/debug/app-debug.apk
-          "$TOOLS/apksigner" verify --verbose --print-certs AppointmentScanner-v1.1.0.apk | tee AppointmentScanner-v1.1.0.signer.txt
+            --out AppointmentScanner-v1.1.1.apk \
+            AppointmentScanner-v1.1.1/app/build/outputs/apk/debug/app-debug.apk
+          "$TOOLS/apksigner" verify --verbose --print-certs AppointmentScanner-v1.1.1.apk | tee AppointmentScanner-v1.1.1.signer.txt
           EXPECTED="a2d869205243706b29da39700314f547e1993d5c0e411bf968a6d2e8afd2e40c"
-          ACTUAL="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' AppointmentScanner-v1.1.0.signer.txt | tr '[:upper:]' '[:lower:]')"
+          ACTUAL="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' AppointmentScanner-v1.1.1.signer.txt | tr '[:upper:]' '[:lower:]')"
           test "$ACTUAL" = "$EXPECTED"
-          "$TOOLS/aapt" dump badging AppointmentScanner-v1.1.0.apk > AppointmentScanner-v1.1.0.package.txt
-          grep -q "^package: name='com.seandurcan.appointmentscanner' versionCode='12' versionName='1.1.0'" AppointmentScanner-v1.1.0.package.txt
-          sha256sum AppointmentScanner-v1.1.0.apk > AppointmentScanner-v1.1.0.apk.sha256
+          "$TOOLS/aapt" dump badging AppointmentScanner-v1.1.1.apk > AppointmentScanner-v1.1.1.package.txt
+          grep -q "^package: name='com.seandurcan.appointmentscanner' versionCode='13' versionName='1.1.1'" AppointmentScanner-v1.1.1.package.txt
+          sha256sum AppointmentScanner-v1.1.1.apk > AppointmentScanner-v1.1.1.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AppointmentScanner-v1.1.0-apk
+          name: AppointmentScanner-v1.1.1-apk
           path: |
-            AppointmentScanner-v1.1.0.apk
-            AppointmentScanner-v1.1.0.apk.sha256
-            AppointmentScanner-v1.1.0.signer.txt
-            AppointmentScanner-v1.1.0.package.txt
+            AppointmentScanner-v1.1.1.apk
+            AppointmentScanner-v1.1.1.apk.sha256
+            AppointmentScanner-v1.1.1.signer.txt
+            AppointmentScanner-v1.1.1.package.txt
           if-no-files-found: error
           retention-days: 30
